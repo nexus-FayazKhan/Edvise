@@ -24,7 +24,10 @@ function Navbar() {
   // Add teacher dashboard for mentors and mentors tab for mentees
   if (isSignedIn) {
     if (role === 'teacher') {
-      navItems.splice(2, 0, { name: 'Dashboard', path: '/teacher-dashboard' });
+      navItems.splice(2, 0, 
+        { name: 'Dashboard', path: '/teacher-dashboard' },
+        { name: 'My Chats', path: '/mentor-chat' }
+      );
     } else if (role === 'student') {
       navItems.push({ name: 'Mentors', path: '/mentors' });
     }

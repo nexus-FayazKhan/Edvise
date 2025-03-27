@@ -147,6 +147,84 @@ app.put('/api/users/profile', async (req, res) => {
   }
 });
 
+// Connect with mentor
+app.post('/api/users/connect', async (req, res) => {
+  const { menteeEmail, mentorId } = req.body;
+  try {
+    console.log('Connecting mentee:', menteeEmail, 'with mentor:', mentorId);
+    
+    // Find the mentee
+    const mentee = await User.findOne({ email: menteeEmail });
+    if (!mentee) {
+      console.log('Mentee not found:', menteeEmail);
+      return res.status(404).json({ message: 'Mentee not found' });
+    }
+
+    // Find the mentor
+    const mentor = await User.findById(mentorId);
+    if (!mentor) {
+      console.log('Mentor not found:', mentorId);
+      return res.status(404).json({ message: 'Mentor not found' });
+    }
+
+    // Check if already connected
+    if (mentee.connectedMentors?.some(id => id.toString() === mentorId)) {
+      console.log('Already connected with mentor');
+      return res.status(400).json({ message: 'Already connected with this mentor' });
+    }
+
+    // Add mentor to mentee's connections
+    mentee.connectedMentors = [...(mentee.connectedMentors || []), mentor._id];
+    await mentee.save();
+
+    console.log('Successfully connected mentee with mentor');
+    res.json(mentee.connectedMentors);
+  } catch (error) {
+    console.error('POST /api/users/connect error:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: error.code
+    });
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Disconnect from mentor
+app.post('/api/users/disconnect', async (req, res) => {
+  const { menteeEmail, mentorId } = req.body;
+  try {
+    console.log('Disconnecting mentee:', menteeEmail, 'from mentor:', mentorId);
+    
+    // Find the mentee
+    const mentee = await User.findOne({ email: menteeEmail });
+    if (!mentee) {
+      console.log('Mentee not found:', menteeEmail);
+      return res.status(404).json({ message: 'Mentee not found' });
+    }
+
+    // Check if connected
+    if (!mentee.connectedMentors?.some(id => id.toString() === mentorId)) {
+      console.log('Not connected with mentor');
+      return res.status(400).json({ message: 'Not connected with this mentor' });
+    }
+
+    // Remove mentor from mentee's connections
+    mentee.connectedMentors = mentee.connectedMentors.filter(id => id.toString() !== mentorId);
+    await mentee.save();
+
+    console.log('Successfully disconnected mentee from mentor');
+    res.json(mentee.connectedMentors);
+  } catch (error) {
+    console.error('POST /api/users/disconnect error:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: error.code
+    });
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
 
 // Endpoint to fetch all mentors (still filters for role: "mentor")
 app.get('/api/users/mentors', async (req, res) => {
@@ -216,8 +294,6 @@ app.get('/api/users/mentors/:id', async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
-
-
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {

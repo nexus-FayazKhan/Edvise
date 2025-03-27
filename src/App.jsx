@@ -14,7 +14,9 @@ import TeacherDashboard from './pages/TeacherDashboard';
 import JobOpportunities from './pages/JobOpportunities';
 import Profile from './pages/Profile';
 import Mentors from './pages/Mentors';
-import MentorProfile from './pages/MentorProfile'; // Add this import
+import MentorProfile from './pages/MentorProfile';
+import ChatApp from './pages/ChatApp';
+import MentorChat from './pages/MentorChat';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -26,7 +28,8 @@ const ProtectedLayout = () => {
   const hideHeaderFooter =
     location.pathname === '/roadmap' ||
     location.pathname === '/timetable' ||
-    location.pathname === '/saved-roadmaps';
+    location.pathname === '/saved-roadmaps' ||
+    location.pathname.startsWith('/chat/');
 
   const showFooter = !hideHeaderFooter;
   const showNavbar = !hideHeaderFooter;
@@ -126,7 +129,9 @@ function App() {
           <Route path="/job-opportunities" element={<JobOpportunities />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/mentors" element={<Mentors />} />
-          <Route path="/mentors/:id" element={<MentorProfile />} /> {/* Add this route */}
+          <Route path="/mentors/:id" element={<MentorProfile />} />
+          <Route path="/ChatApp/:mentorId" element={<ChatApp />} />
+          <Route path="/mentor-chat" element={<MentorChat />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

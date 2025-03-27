@@ -95,47 +95,8 @@ const Mentors = () => {
     navigate(`/mentors/${mentorId}`);
   };
 
-  const handleSelectMentor = async (mentor) => {
-    setSelectedMentor(mentor);
-    try {
-      const response = await fetch(
-        `http://localhost:5001/api/messages/${user.id}/${mentor._id}`
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setMessages(data);
-      } else {
-        throw new Error('Failed to fetch messages');
-      }
-    } catch (error) {
-      console.error('Error fetching messages:', error);
-      toast.error('Failed to load messages');
-    }
-  };
-
-  const handleSendMessage = async () => {
-    if (!newMessage.trim()) return;
-    try {
-      const response = await fetch('http://localhost:5001/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          senderId: user.id,
-          receiverId: selectedMentor._id,
-          content: newMessage,
-        }),
-      });
-      if (response.ok) {
-        const message = await response.json();
-        setMessages([...messages, message]);
-        setNewMessage('');
-      } else {
-        throw new Error('Failed to send message');
-      }
-    } catch (error) {
-      console.error('Error sending message:', error);
-      toast.error('Failed to send message');
-    }
+  const handleSelectMentor = (mentor) => {
+    navigate(`/ChatApp/${mentor._id}`);
   };
 
   const handleSearch = (e) => {
@@ -176,50 +137,6 @@ const Mentors = () => {
           </ul>
         ) : (
           <p className="text-gray-600 dark:text-gray-300">No connected mentors yet.</p>
-        )}
-
-        {/* Chat Section */}
-        {selectedMentor && (
-          <div className="mt-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              Chat with {selectedMentor.username}
-            </h3>
-            <div className="h-48 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg p-2 bg-gray-50 dark:bg-dark-tertiary">
-              {messages.map((msg) => (
-                <div
-                  key={msg._id}
-                  className={`mb-2 ${
-                    msg.sender === user.id ? 'text-right' : 'text-left'
-                  }`}
-                >
-                  <span
-                    className={`inline-block p-2 rounded-lg ${
-                      msg.sender === user.id
-                        ? 'bg-primary-600 text-white'
-                        : 'bg-gray-200 dark:bg-dark-content text-gray-900 dark:text-gray-300'
-                    }`}
-                  >
-                    {msg.content}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-2 flex">
-              <input
-                type="text"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                className="flex-1 py-2 px-3 bg-white dark:bg-dark-tertiary border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-gray-900 dark:text-gray-100"
-                placeholder="Type a message..."
-              />
-              <button
-                onClick={handleSendMessage}
-                className="ml-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-              >
-                Send
-              </button>
-            </div>
-          </div>
         )}
       </div>
 
