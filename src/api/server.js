@@ -12,12 +12,11 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:5173', // Vite's default port (update if your frontend uses 3000)
+  origin: 'http://localhost:5173',
   credentials: true
 }));
 app.use(express.json({ limit: '50mb' }));
 
-// Debug middleware
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   if (req.method === 'POST') {
@@ -31,38 +30,23 @@ const connectDB = async () => {
   try {
     console.log('Attempting to connect to MongoDB...');
     console.log('MongoDB URI:', process.env.MONGODB_URI ? 'URI is set' : 'URI is missing');
-    
     await mongoose.connect(process.env.MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
     });
-    
     console.log('Successfully connected to MongoDB');
   } catch (err) {
     console.error('MongoDB connection error:', err);
-    console.error('Error details:', {
-      name: err.name,
-      message: err.message,
-      code: err.code,
-      stack: err.stack
-    });
     process.exit(1);
   }
 };
 
-// MongoDB connection error handler
 mongoose.connection.on('error', (err) => {
   console.error('MongoDB connection error:', err);
-  console.error('Error details:', {
-    name: err.name,
-    message: err.message,
-    code: err.code
-  });
 });
 
-// MongoDB disconnection handler
 mongoose.connection.on('disconnected', () => {
   console.log('MongoDB disconnected');
 });
@@ -70,7 +54,7 @@ mongoose.connection.on('disconnected', () => {
 // User Schema
 const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
-  username: { type: String, required: true, unique: true }, // Add username field
+  username: { type: String, required: true, unique: true },
   gender: String,
   birthDate: Date,
   phoneNumber: String,
@@ -79,9 +63,31 @@ const userSchema = new mongoose.Schema({
   college: String,
   careerInterests: String,
   skills: [String],
-  role: { type: String, enum: ['mentee', 'mentor'], default: 'mentee' },
+  role: { 
+    type: String, 
+    enum: ['mentee', 'mentor'], 
+    default: 'mentee',
+    trim: true, // Remove extra spaces
+    lowercase: true // Force lowercase
+  },
+  connectedMentors: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  mentorInfo: {
+    degree: String,
+    institution: String,
+    yearsOfExperience: Number,
+    bio: String,
+  },
 });
 const User = mongoose.model('User', userSchema);
+
+// Chat Message Schema
+const messageSchema = new mongoose.Schema({
+  sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  receiver: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  content: { type: String, required: true },
+  timestamp: { type: Date, default: Date.now },
+});
+const Message = mongoose.model('Message', messageSchema);
 
 // Routes
 app.use('/api/roadmaps', roadmapRoutes);
@@ -93,15 +99,25 @@ app.get('/api/users/profile', async (req, res) => {
   const { email } = req.query;
   try {
     console.log('Fetching profile for email:', email);
-    const user = await User.findOne({ email });
+    if (!email) {
+      console.log('Email not provided in query');
+      return res.status(400).json({ message: 'Email is required' });
+    }
+    const user = await User.findOne({ email }).populate('connectedMentors', 'username').exec();
     if (!user) {
       console.log('User not found for email:', email);
       return res.status(404).json({ message: 'User not found' });
     }
+    console.log('User found:', user.username);
     res.json(user);
   } catch (error) {
-    console.error('GET /api/users/profile error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('GET /api/users/profile error:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: error.code
+    });
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
@@ -109,39 +125,101 @@ app.put('/api/users/profile', async (req, res) => {
   const { email, ...updates } = req.body;
   try {
     console.log('Updating profile for email:', email);
+    if (!email) {
+      console.log('Email not provided in request body');
+      return res.status(400).json({ message: 'Email is required' });
+    }
     const user = await User.findOneAndUpdate(
       { email },
       { $set: updates },
-      { new: true, upsert: true } // Create if not exists
+      { new: true, upsert: true }
     );
+    console.log('Profile updated for user:', user.username);
     res.json(user);
   } catch (error) {
-    console.error('PUT /api/users/profile error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('PUT /api/users/profile error:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: error.code
+    });
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
+
+// Endpoint to fetch all mentors (still filters for role: "mentor")
 app.get('/api/users/mentors', async (req, res) => {
   const { skills } = req.query;
   try {
     console.log('Fetching mentors with skills:', skills);
     const skillArray = skills ? skills.split(',') : [];
-    const mentors = await User.find(
-      {
-        role: 'mentor',
-        skills: { $in: skillArray },
-      },
-      { username: 1, skills: 1, _id: 1 } // Select only username, skills, and _id
-    );
+    const query = { role: { $eq: 'mentor' } };
+    if (skillArray.length > 0) {
+      query.skills = { $in: skillArray };
+    }
+    const mentors = await User.find(query, { username: 1, skills: 1, _id: 1 }).exec();
     console.log('Mentors found:', mentors.length);
+    console.log('Mentor IDs:', mentors.map(m => m._id.toString()));
     res.json(mentors);
   } catch (error) {
-    console.error('GET /api/users/mentors error:', error.message);
+    console.error('GET /api/users/mentors error:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: error.code,
+    });
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
-// Error handling middleware
+app.get('/api/users/mentors/:id', async (req, res) => {
+  try {
+    console.log('Fetching mentor with ID:', req.params.id);
+    // First try to find the user without any field restrictions to debug
+    const user = await User.findById(req.params.id).exec();
+    
+    if (!user) {
+      console.log('No user found with ID:', req.params.id);
+      return res.status(404).json({ message: 'Mentor not found' });
+    }
+
+    console.log('Found user:', {
+      id: user._id,
+      username: user.username,
+      role: user.role,
+      skills: user.skills,
+      mentorInfo: user.mentorInfo
+    });
+
+    // Now get the mentor with required fields
+    const mentor = await User.findById(req.params.id).select('username email skills mentorInfo role location education college careerInterests').exec();
+    
+    // Case-insensitive role check
+    if (!mentor.role || mentor.role.toLowerCase() !== 'mentor') {
+      console.log('User exists but is not a mentor. Role:', mentor.role);
+      return res.status(404).json({ message: 'User is not a mentor' });
+    }
+
+    console.log('Mentor found:', mentor.username);
+    res.json(mentor);
+  } catch (error) {
+    console.error('GET /api/users/mentors/:id error:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: error.code
+    });
+    if (error.name === 'CastError') {
+      return res.status(400).json({ message: 'Invalid mentor ID format' });
+    }
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+
+
+// Error Handling Middleware
 app.use((err, req, res, next) => {
   console.error('Error occurred:', {
     message: err.message,
@@ -162,7 +240,6 @@ app.use((err, req, res, next) => {
       error: 'Database error',
       message: err.message,
       type: err.name,
-      details: process.env.NODE_ENV === 'development' ? err : undefined
     });
   }
 
@@ -170,12 +247,18 @@ app.use((err, req, res, next) => {
     error: 'Something went wrong!',
     message: err.message,
     type: err.name,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
   });
+});
+
+// Catch-All Route for 404
+app.use((req, res) => {
+  console.log('Route not found:', req.method, req.url);
+  res.status(404).json({ message: 'Route not found' });
 });
 
 const startServer = async () => {
   try {
+    console.log('Server.js loaded at:', new Date().toISOString());
     await connectDB();
     const PORT = process.env.PORT || 5001;
     app.listen(PORT, () => {

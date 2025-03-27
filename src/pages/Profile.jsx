@@ -15,6 +15,7 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userProfile, setUserProfile] = useState({
+    username: '',
     gender: '',
     birthDate: '',
     phoneNumber: '',
@@ -24,6 +25,12 @@ const Profile = () => {
     careerInterests: '',
     skills: [],
     role: 'mentee',
+    mentorInfo: {
+      degree: '',
+      institution: '',
+      yearsOfExperience: 0,
+      bio: '',
+    },
   });
 
   useEffect(() => {
@@ -44,6 +51,7 @@ const Profile = () => {
           ...userProfile,
           ...data,
           birthDate: data.birthDate ? data.birthDate.split('T')[0] : '',
+          mentorInfo: data.mentorInfo || { degree: '', institution: '', yearsOfExperience: 0, bio: '' },
         });
       } else if (response.status === 404) {
         setUserProfile({ ...userProfile, email: user.primaryEmailAddress.emailAddress });
@@ -63,6 +71,16 @@ const Profile = () => {
     setUserProfile({
       ...userProfile,
       [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleMentorInfoChange = (e) => {
+    setUserProfile({
+      ...userProfile,
+      mentorInfo: {
+        ...userProfile.mentorInfo,
+        [e.target.name]: e.target.value,
+      },
     });
   };
 
@@ -115,7 +133,7 @@ const Profile = () => {
   if (loading) return <div className="text-center py-12 text-gray-600 dark:text-gray-300">Loading profile...</div>;
   if (error) return <div className="text-center py-12 text-red-500 dark:text-red-400">{error}</div>;
 
-  const isProfileIncomplete = !userProfile.gender || !userProfile.birthDate || !userProfile.education;
+  const isProfileIncomplete = !userProfile.gender || !userProfile.birthDate || !userProfile.education || !userProfile.username;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-dark-primary py-12 px-4 sm:px-6 lg:px-8">
@@ -158,6 +176,22 @@ const Profile = () => {
             )}
 
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
+              {/* Username */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Username</label>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    name="username"
+                    value={userProfile.username}
+                    onChange={handleChange}
+                    className="mt-2 block w-full py-3 px-4 bg-white dark:bg-dark-tertiary border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-primary-500 focus:border-primary-500 text-gray-900 dark:text-gray-100 transition-colors duration-200"
+                  />
+                ) : (
+                  <p className="mt-2 text-sm text-gray-900 dark:text-gray-300">{userProfile.username || 'Not set'}</p>
+                )}
+              </div>
+
               {/* Gender */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Gender</label>
@@ -300,6 +334,71 @@ const Profile = () => {
                   </p>
                 )}
               </div>
+
+              {/* Mentor Info (Visible only for mentors) */}
+              {userProfile.role === 'mentor' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Degree</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        name="degree"
+                        value={userProfile.mentorInfo.degree}
+                        onChange={handleMentorInfoChange}
+                        className="mt-2 block w-full py-3 px-4 bg-white dark:bg-dark-tertiary border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-primary-500 focus:border-primary-500 text-gray-900 dark:text-gray-100 transition-colors duration-200"
+                      />
+                    ) : (
+                      <p className="mt-2 text-sm text-gray-900 dark:text-gray-300">{userProfile.mentorInfo.degree || 'Not set'}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Institution</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        name="institution"
+                        value={userProfile.mentorInfo.institution}
+                        onChange={handleMentorInfoChange}
+                        className="mt-2 block w-full py-3 px-4 bg-white dark:bg-dark-tertiary border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-primary-500 focus:border-primary-500 text-gray-900 dark:text-gray-100 transition-colors duration-200"
+                      />
+                    ) : (
+                      <p className="mt-2 text-sm text-gray-900 dark:text-gray-300">{userProfile.mentorInfo.institution || 'Not set'}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Years of Experience</label>
+                    {isEditing ? (
+                      <input
+                        type="number"
+                        name="yearsOfExperience"
+                        value={userProfile.mentorInfo.yearsOfExperience}
+                        onChange={handleMentorInfoChange}
+                        className="mt-2 block w-full py-3 px-4 bg-white dark:bg-dark-tertiary border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-primary-500 focus:border-primary-500 text-gray-900 dark:text-gray-100 transition-colors duration-200"
+                      />
+                    ) : (
+                      <p className="mt-2 text-sm text-gray-900 dark:text-gray-300">{userProfile.mentorInfo.yearsOfExperience || 'Not set'}</p>
+                    )}
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Bio</label>
+                    {isEditing ? (
+                      <textarea
+                        name="bio"
+                        value={userProfile.mentorInfo.bio}
+                        onChange={handleMentorInfoChange}
+                        className="mt-2 block w-full py-3 px-4 bg-white dark:bg-dark-tertiary border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-primary-500 focus:border-primary-500 text-gray-900 dark:text-gray-100 transition-colors duration-200"
+                        rows="3"
+                      />
+                    ) : (
+                      <p className="mt-2 text-sm text-gray-900 dark:text-gray-300">{userProfile.mentorInfo.bio || 'Not set'}</p>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Skills Section */}

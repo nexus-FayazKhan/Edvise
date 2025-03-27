@@ -12,11 +12,13 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import TeacherDashboard from './pages/TeacherDashboard';
 import JobOpportunities from './pages/JobOpportunities';
-import Profile from './pages/Profile'; // Updated import path to pages/Profile
+import Profile from './pages/Profile';
+import Mentors from './pages/Mentors';
+import MentorProfile from './pages/MentorProfile'; // Add this import
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Mentors from './pages/Mentors'; // Adjust path
+
 const ProtectedLayout = () => {
   const { isSignedIn, isLoaded } = useAuth();
   const location = useLocation();
@@ -66,7 +68,6 @@ const ProtectedLayout = () => {
   );
 };
 
-// Public Layout Component
 const PublicLayout = ({ children }) => {
   return (
     <ThemeProvider>
@@ -123,8 +124,9 @@ function App() {
           <Route path="/saved-roadmaps/:id" element={<SavedRoadmaps />} />
           <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
           <Route path="/job-opportunities" element={<JobOpportunities />} />
-          <Route path="/profile" element={<Profile />} /> {/* Profile route */}
+          <Route path="/profile" element={<Profile />} />
           <Route path="/mentors" element={<Mentors />} />
+          <Route path="/mentors/:id" element={<MentorProfile />} /> {/* Add this route */}
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
