@@ -15,6 +15,10 @@ import Reviews from './pages/Reviews';
 import CollegeDetails from './pages/CollegeDetails';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastContainer } from 'react-toastify';
+import Profile from './pages/Profile';
+import Mentors from './pages/Mentors';
+import MentorProfile from './pages/MentorProfile';
+import Chat from './pages/Chat';
 import 'react-toastify/dist/ReactToastify.css';
 
 
@@ -22,11 +26,15 @@ const ProtectedLayout = () => {
   const { isSignedIn, isLoaded } = useAuth();
   const location = useLocation();
 
-  const hideHeaderFooter =location.pathname === '/roadmap' ||
-                          location.pathname === '/timetable' ||
-                          location.pathname === '/saved-roadmaps'  ;
+  const hideHeaderFooter = location.pathname === '/roadmap' ||
+                          location.pathname === '/saved-roadmaps';
 
-  const showFooter = !hideHeaderFooter;
+  const hideFooterOnly = location.pathname.startsWith('/mentor/') || 
+  location.pathname === '/mentors' ||
+                         location.pathname === '/chat';
+  const hideSidebar = location.pathname.startsWith('/mentor/');
+  
+  const showFooter = !hideHeaderFooter && !hideFooterOnly;
   const showNavbar = !hideHeaderFooter;
 
   if (!isLoaded) {
@@ -118,6 +126,10 @@ function App() {
           <Route path="/job-opportunities" element={<JobOpportunities />} />
           <Route path="/reviews" element={<Reviews />} />
           <Route path="/college/:collegeId" element={<CollegeDetails />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/mentors" element={<Mentors />} />
+          <Route path="/mentor/:mentorId" element={<MentorProfile />} />
+          <Route path="/chat" element={<Chat />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
