@@ -10,7 +10,6 @@ import Roadmap from './pages/Roadmap';
 import SavedRoadmaps from './pages/SavedRoadmaps';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import TeacherDashboard from './pages/TeacherDashboard';
 import JobOpportunities from './pages/JobOpportunities';
 import Reviews from './pages/Reviews';
 import CollegeDetails from './pages/CollegeDetails';
@@ -116,7 +115,6 @@ function App() {
           <Route path="/roadmap/shared/:sharedData" element={<Roadmap />} />
           <Route path="/saved-roadmaps" element={<SavedRoadmaps />} />
           <Route path="/saved-roadmaps/:id" element={<SavedRoadmaps />} />
-          <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
           <Route path="/job-opportunities" element={<JobOpportunities />} />
           <Route path="/reviews" element={<Reviews />} />
           <Route path="/college/:collegeId" element={<CollegeDetails />} />

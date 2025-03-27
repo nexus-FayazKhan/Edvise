@@ -1,9 +1,7 @@
 import React from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { Link } from 'react-router-dom';
 import Hero from '../components/Hero';
 import Benefits from '../components/Benefits';
-import HowItWorks from '../components/HowItWorks';
 import Testimonials from '../components/Testimonials';
 import Contact from '../components/Contact';
 
@@ -16,7 +14,6 @@ function Home() {
       <main className="dark:text-gray-100">
         <Hero />
         <Benefits />
-        <HowItWorks />
         <Testimonials />
         <Contact />
       </main>

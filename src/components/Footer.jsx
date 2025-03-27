@@ -84,7 +84,7 @@ const Footer = () => {
           <div className="col-span-2 md:col-span-3 lg:col-span-1 space-y-6">
             <Link to="/" className="flex items-center space-x-3">
               <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-500 dark:from-dark-accent dark:to-dark-accent-light">
-              EDU AI
+              Edvise
               </span>
             </Link>
           
