@@ -12,6 +12,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import TeacherDashboard from './pages/TeacherDashboard';
 import JobOpportunities from './pages/JobOpportunities';
+import Reviews from './pages/Reviews';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -116,6 +117,7 @@ function App() {
           <Route path="/saved-roadmaps/:id" element={<SavedRoadmaps />} />
           <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
           <Route path="/job-opportunities" element={<JobOpportunities />} />
+          <Route path="/reviews" element={<Reviews />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

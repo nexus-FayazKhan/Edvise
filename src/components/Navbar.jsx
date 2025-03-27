@@ -16,6 +16,7 @@ function Navbar() {
     { name: 'Home', path: '/' },
     { name: 'Courses', path: '/courses' },
     { name: 'Features', path: '/features' },
+    { name: 'Reviews', path: '/reviews' },
   ];
 
   // Add teacher dashboard to nav items if role is teacher
@@ -41,7 +42,7 @@ function Navbar() {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <span className="text-xl font-bold text-primary-600 dark:text-dark-accent">
-              EDU-AI
+              Edvise
             </span>
           </Link>
 
