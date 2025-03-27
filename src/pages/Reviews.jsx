@@ -1,10 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { FaStar, FaFilter, FaSearch, FaPen, FaBook, FaSpinner, FaUniversity, FaGraduationCap } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 // Review Card Component
 const ReviewCard = ({ review }) => {
+  const navigate = useNavigate();
+  
+  const handleCollegeClick = () => {
+    navigate(`/college/${review.id}`, { 
+      state: { collegeData: review } 
+    });
+  };
+  
   return (
-    <div className="bg-white dark:bg-dark-secondary rounded-lg shadow-md p-4 mb-2 hover:shadow-lg transition-all border border-transparent hover:border-primary-200 dark:hover:border-primary-900 ">
+    <div 
+      className="bg-white dark:bg-dark-secondary rounded-lg shadow-md p-4 mb-2 hover:shadow-lg transition-all border border-transparent hover:border-primary-200 dark:hover:border-primary-900 cursor-pointer"
+      onClick={handleCollegeClick}
+    >
       <div className="flex justify-between items-start mb-3">
         <div>
           <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-1">{review.collegeName}</h3>
@@ -47,6 +59,7 @@ const ReviewCard = ({ review }) => {
 };
 
 const Reviews = () => {
+  const navigate = useNavigate();
   const [reviews, setReviews] = useState([]);
   const [filteredReviews, setFilteredReviews] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
@@ -622,7 +635,18 @@ const Reviews = () => {
               {searchResults.map((result, index) => (
                 <div 
                   key={index} 
-                  className="bg-white dark:bg-dark-secondary rounded-xl shadow-md p-6 hover:shadow-xl transition-all border border-transparent hover:border-primary-200 dark:hover:border-primary-900 mx-4"
+                  className="bg-white dark:bg-dark-secondary rounded-xl shadow-md p-6 hover:shadow-xl transition-all border border-transparent hover:border-primary-200 dark:hover:border-primary-900 mx-4 cursor-pointer"
+                  onClick={() => {
+                    navigate(`/college/${index}`, { 
+                      state: { 
+                        collegeData: {
+                          ...result,
+                          id: index,
+                          collegeDescription: result.reviewText
+                        } 
+                      } 
+                    });
+                  }}
                 >
                   <div className="flex justify-between items-start mb-4">
                     <div>
