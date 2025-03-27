@@ -12,10 +12,10 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:5173', // Vite's default port
+  origin: 'http://localhost:5173', // Vite's default port (update if your frontend uses 3000)
   credentials: true
 }));
-app.use(express.json({ limit: '50mb' })); // Increase payload limit
+app.use(express.json({ limit: '50mb' }));
 
 // Debug middleware
 app.use((req, res, next) => {
@@ -35,8 +35,8 @@ const connectDB = async () => {
     await mongoose.connect(process.env.MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
-      socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
     });
     
     console.log('Successfully connected to MongoDB');
@@ -67,10 +67,79 @@ mongoose.connection.on('disconnected', () => {
   console.log('MongoDB disconnected');
 });
 
+// User Schema
+const userSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true },
+  username: { type: String, required: true, unique: true }, // Add username field
+  gender: String,
+  birthDate: Date,
+  phoneNumber: String,
+  location: String,
+  education: String,
+  college: String,
+  careerInterests: String,
+  skills: [String],
+  role: { type: String, enum: ['mentee', 'mentor'], default: 'mentee' },
+});
+const User = mongoose.model('User', userSchema);
+
 // Routes
 app.use('/api/roadmaps', roadmapRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/communities', communityRoutes);
+
+// Profile Routes
+app.get('/api/users/profile', async (req, res) => {
+  const { email } = req.query;
+  try {
+    console.log('Fetching profile for email:', email);
+    const user = await User.findOne({ email });
+    if (!user) {
+      console.log('User not found for email:', email);
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json(user);
+  } catch (error) {
+    console.error('GET /api/users/profile error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.put('/api/users/profile', async (req, res) => {
+  const { email, ...updates } = req.body;
+  try {
+    console.log('Updating profile for email:', email);
+    const user = await User.findOneAndUpdate(
+      { email },
+      { $set: updates },
+      { new: true, upsert: true } // Create if not exists
+    );
+    res.json(user);
+  } catch (error) {
+    console.error('PUT /api/users/profile error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.get('/api/users/mentors', async (req, res) => {
+  const { skills } = req.query;
+  try {
+    console.log('Fetching mentors with skills:', skills);
+    const skillArray = skills ? skills.split(',') : [];
+    const mentors = await User.find(
+      {
+        role: 'mentor',
+        skills: { $in: skillArray },
+      },
+      { username: 1, skills: 1, _id: 1 } // Select only username, skills, and _id
+    );
+    console.log('Mentors found:', mentors.length);
+    res.json(mentors);
+  } catch (error) {
+    console.error('GET /api/users/mentors error:', error.message);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -81,7 +150,6 @@ app.use((err, req, res, next) => {
     code: err.code
   });
 
-  // Handle payload too large error
   if (err instanceof SyntaxError && err.status === 413) {
     return res.status(413).json({
       error: 'Request entity too large',
@@ -89,7 +157,6 @@ app.use((err, req, res, next) => {
     });
   }
 
-  // MongoDB errors
   if (err instanceof mongoose.Error) {
     return res.status(500).json({
       error: 'Database error',
@@ -99,7 +166,6 @@ app.use((err, req, res, next) => {
     });
   }
 
-  // Generic error response
   res.status(500).json({ 
     error: 'Something went wrong!',
     message: err.message,

@@ -12,18 +12,19 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import TeacherDashboard from './pages/TeacherDashboard';
 import JobOpportunities from './pages/JobOpportunities';
+import Profile from './pages/Profile'; // Updated import path to pages/Profile
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
-
+import Mentors from './pages/Mentors'; // Adjust path
 const ProtectedLayout = () => {
   const { isSignedIn, isLoaded } = useAuth();
   const location = useLocation();
 
-  const hideHeaderFooter =location.pathname === '/roadmap' ||
-                          location.pathname === '/timetable' ||
-                          location.pathname === '/saved-roadmaps'  ;
+  const hideHeaderFooter =
+    location.pathname === '/roadmap' ||
+    location.pathname === '/timetable' ||
+    location.pathname === '/saved-roadmaps';
 
   const showFooter = !hideHeaderFooter;
   const showNavbar = !hideHeaderFooter;
@@ -91,17 +92,23 @@ function App() {
     <BrowserRouter>
       <Routes>
         {/* Public Routes */}
-        <Route path="/sign-in" element={
-          <PublicLayout>
-            {!isSignedIn ? <SignInPage /> : <Navigate to="/dashboard" replace />}
-          </PublicLayout>
-        } />
-        <Route path="/sign-up" element={
-          <PublicLayout>
-            {!isSignedIn ? <SignUpPage /> : <Navigate to="/dashboard" replace />}
-          </PublicLayout>
-        } />
-        
+        <Route
+          path="/sign-in"
+          element={
+            <PublicLayout>
+              {!isSignedIn ? <SignInPage /> : <Navigate to="/dashboard" replace />}
+            </PublicLayout>
+          }
+        />
+        <Route
+          path="/sign-up"
+          element={
+            <PublicLayout>
+              {!isSignedIn ? <SignUpPage /> : <Navigate to="/dashboard" replace />}
+            </PublicLayout>
+          }
+        />
+
         {/* Protected Routes */}
         <Route element={<ProtectedLayout />}>
           <Route path="/" element={<Home />} />
@@ -116,6 +123,8 @@ function App() {
           <Route path="/saved-roadmaps/:id" element={<SavedRoadmaps />} />
           <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
           <Route path="/job-opportunities" element={<JobOpportunities />} />
+          <Route path="/profile" element={<Profile />} /> {/* Profile route */}
+          <Route path="/mentors" element={<Mentors />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
