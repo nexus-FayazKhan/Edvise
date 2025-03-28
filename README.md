@@ -9,7 +9,7 @@ EQUINOX
 ### Demo Video Link
 https://drive.google.com/file/d/10sau1tyUGvAzAqZwNpaZPheO5JMLe_67/view?usp=sharing
 
-### Team Leader
+### Team Leader 
 - **Rhugved Dangui**  
   - Contact: 8805218288 
   - Email: rhugveddangui07@gmail.com
